@@ -9,7 +9,7 @@ import { useRef, useEffect } from 'react';
 interface LogoCardProps {
   logo: Logo;
   onPress: () => void;
-  size?: 'small' | 'medium' | 'large' | 'full';
+  height?: number;
   index?: number;
 }
 
@@ -21,7 +21,7 @@ const PLACEHOLDER_IMAGES = [
   'https://images.unsplash.com/photo-1618556450994-a6a128ef0d9d?w=800',
 ];
 
-export const LogoCard = ({ logo, onPress, size = 'small', index = 0 }: LogoCardProps) => {
+export const LogoCard = ({ logo, onPress, height, index = 0 }: LogoCardProps) => {
   const { theme } = useTheme();
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const imageUrl = PLACEHOLDER_IMAGES[index % PLACEHOLDER_IMAGES.length];
@@ -36,28 +36,18 @@ export const LogoCard = ({ logo, onPress, size = 'small', index = 0 }: LogoCardP
     }).start();
   }, []);
 
-  const getAspectRatio = () => {
-    switch (size) {
-      case 'full':
-        return 1.5; // Wide landscape
-      case 'large':
-        return 1.2; // Slightly wide
-      case 'medium':
-        return 0.85; // Portrait
-      case 'small':
-        return 1; // Square
-    }
-  };
-
+  // Determine text size based on card height
   const getTextSize = () => {
-    switch (size) {
-      case 'full':
-        return { title: Typography['2xl'], likes: Typography.base };
-      case 'large':
-        return { title: Typography.xl, likes: Typography.sm };
-      default:
-        return { title: Typography.lg, likes: Typography.xs };
+    if (!height) return { title: Typography.lg, likes: Typography.xs };
+    
+    if (height > 300) {
+      return { title: Typography['2xl'], likes: Typography.base };
+    } else if (height > 250) {
+      return { title: Typography.xl, likes: Typography.sm };
+    } else if (height > 200) {
+      return { title: Typography.lg, likes: Typography.sm };
     }
+    return { title: Typography.base, likes: Typography.xs };
   };
 
   const textSizes = getTextSize();
@@ -75,7 +65,7 @@ export const LogoCard = ({ logo, onPress, size = 'small', index = 0 }: LogoCardP
         onPress={onPress}
         activeOpacity={0.95}
       >
-        <View style={[styles.imageContainer, { aspectRatio: getAspectRatio() }]}>
+        <View style={[styles.imageContainer, height ? { height } : { aspectRatio: 1 }]}>
           <Image
             source={{ uri: imageUrl }}
             style={styles.image}

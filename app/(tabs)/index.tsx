@@ -73,14 +73,15 @@ export default function ExploreScreen() {
         </View>
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.categoriesContainer}
-        style={styles.categoriesScroll}
-      >
-        {categories.map(renderCategoryItem)}
-      </ScrollView>
+      <View style={styles.categoriesWrapper}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoriesContainer}
+        >
+          {categories.map(renderCategoryItem)}
+        </ScrollView>
+      </View>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -96,11 +97,11 @@ export default function ExploreScreen() {
           <DynamicMasonryGrid
             data={filteredLogos}
             gap={16}
-            renderItem={(logo, size, index) => (
+            renderItem={(logo, height, index) => (
               <LogoCard
                 logo={logo}
                 onPress={() => handleLogoPress(logo.id)}
-                size={size}
+                height={height}
                 index={index}
               />
             )}
@@ -140,14 +141,14 @@ const styles = StyleSheet.create({
     fontSize: Typography.sm,
     marginTop: Spacing.xs,
   },
-  categoriesScroll: {
-    maxHeight: 50,
+  categoriesWrapper: {
     marginBottom: Spacing.md,
   },
   categoriesContainer: {
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.xs,
+    paddingVertical: Spacing.sm,
     gap: Spacing.sm,
+    alignItems: 'center',
   },
   categoryChip: {
     paddingHorizontal: Spacing.lg,

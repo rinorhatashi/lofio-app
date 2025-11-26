@@ -4,7 +4,7 @@ import { Logo } from '@/types';
 
 interface DynamicMasonryGridProps {
   data: Logo[];
-  renderItem: (item: Logo, size: 'small' | 'medium' | 'large' | 'full', index: number) => ReactNode;
+  renderItem: (item: Logo, height: number, index: number) => ReactNode;
   gap?: number;
 }
 
@@ -15,105 +15,73 @@ export const DynamicMasonryGrid = ({
   renderItem,
   gap = 16,
 }: DynamicMasonryGridProps) => {
-  // Sort by likes to prioritize high-engagement content
-  const sortedData = [...data].sort((a, b) => b.likes - a.likes);
-  
-  // Determine card size based on likes
-  const getCardSize = (logo: Logo, index: number): 'small' | 'medium' | 'large' | 'full' => {
-    if (logo.likes > 80 && index === 0) return 'full'; // Top liked item gets full width
-    if (logo.likes > 60) return 'large'; // High likes get large cards
-    if (logo.likes > 40) return 'medium'; // Medium likes get medium cards
-    return 'small'; // Default small cards
+  // Calculate column width
+  const columnWidth = (SCREEN_WIDTH - (gap * 3)) / 2;
+
+  // Determine card height based on likes (more likes = taller cards)
+  const getCardHeight = (logo: Logo): number => {
+    if (logo.likes > 80) return columnWidth * 1.6; // Very tall
+    if (logo.likes > 60) return columnWidth * 1.4; // Tall
+    if (logo.likes > 40) return columnWidth * 1.2; // Medium-tall
+    if (logo.likes > 20) return columnWidth * 1.0; // Square
+    return columnWidth * 0.8; // Short
   };
 
-  const getCardWidth = (size: 'small' | 'medium' | 'large' | 'full'): number => {
-    const availableWidth = SCREEN_WIDTH - (gap * 3);
-    switch (size) {
-      case 'full':
-        return SCREEN_WIDTH - (gap * 2);
-      case 'large':
-        return (availableWidth * 0.65);
-      case 'medium':
-        return (availableWidth * 0.48);
-      case 'small':
-        return (availableWidth * 0.48);
-    }
-  };
+  // Distribute items into two columns, balancing heights
+  const distributeToColumns = () => {
+    const leftColumn: { logo: Logo; height: number; index: number }[] = [];
+    const rightColumn: { logo: Logo; height: number; index: number }[] = [];
+    let leftHeight = 0;
+    let rightHeight = 0;
 
-  const renderGrid = () => {
-    const rows: ReactNode[] = [];
-    let currentRow: { logo: Logo; size: string; index: number }[] = [];
-    let currentRowWidth = 0;
-    const maxRowWidth = SCREEN_WIDTH - (gap * 2);
-
-    sortedData.forEach((logo, index) => {
-      const size = getCardSize(logo, index);
-      const cardWidth = getCardWidth(size);
-
-      // If adding this card would exceed row width, start a new row
-      if (currentRowWidth + cardWidth + gap > maxRowWidth && currentRow.length > 0) {
-        rows.push(
-          <View key={`row-${rows.length}`} style={[styles.row, { gap }]}>
-            {currentRow.map((item, idx) => (
-              <View key={`${item.logo.id}-${idx}`} style={{ width: getCardWidth(item.size as any) }}>
-                {renderItem(item.logo, item.size as any, item.index)}
-              </View>
-            ))}
-          </View>
-        );
-        currentRow = [];
-        currentRowWidth = 0;
-      }
-
-      // Add card to current row
-      currentRow.push({ logo, size, index });
-      currentRowWidth += cardWidth + gap;
-
-      // Full width cards get their own row
-      if (size === 'full') {
-        rows.push(
-          <View key={`row-${rows.length}`} style={[styles.row, { gap }]}>
-            <View style={{ width: getCardWidth('full') }}>
-              {renderItem(logo, 'full', index)}
-            </View>
-          </View>
-        );
-        currentRow = [];
-        currentRowWidth = 0;
+    data.forEach((logo, index) => {
+      const height = getCardHeight(logo);
+      
+      // Add to shorter column to balance layout
+      if (leftHeight <= rightHeight) {
+        leftColumn.push({ logo, height, index });
+        leftHeight += height + gap;
+      } else {
+        rightColumn.push({ logo, height, index });
+        rightHeight += height + gap;
       }
     });
 
-    // Add remaining cards in the last row
-    if (currentRow.length > 0) {
-      rows.push(
-        <View key={`row-${rows.length}`} style={[styles.row, { gap }]}>
-          {currentRow.map((item, idx) => (
-            <View key={`${item.logo.id}-${idx}`} style={{ width: getCardWidth(item.size as any) }}>
-              {renderItem(item.logo, item.size as any, item.index)}
-            </View>
-          ))}
-        </View>
-      );
-    }
-
-    return rows;
+    return { leftColumn, rightColumn };
   };
 
+  const { leftColumn, rightColumn } = distributeToColumns();
+
   return (
-    <View style={[styles.container, { gap }]}>
-      {renderGrid()}
+    <View style={styles.container}>
+      {/* Left Column */}
+      <View style={[styles.column, { width: columnWidth }]}>
+        {leftColumn.map((item) => (
+          <View key={item.logo.id} style={{ marginBottom: gap }}>
+            {renderItem(item.logo, item.height, item.index)}
+          </View>
+        ))}
+      </View>
+
+      {/* Right Column */}
+      <View style={[styles.column, { width: columnWidth }]}>
+        {rightColumn.map((item) => (
+          <View key={item.logo.id} style={{ marginBottom: gap }}>
+            {renderItem(item.logo, item.height, item.index)}
+          </View>
+        ))}
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 16,
-  },
-  row: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 16,
+    paddingHorizontal: 16,
+    gap: 16,
+  },
+  column: {
+    flexDirection: 'column',
   },
 });
-
