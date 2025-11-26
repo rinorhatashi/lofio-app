@@ -88,7 +88,7 @@ export const LogoCard = ({ logo, onPress, height, index = 0 }: LogoCardProps) =>
             {/* Likes at bottom */}
             <View style={styles.bottomContent}>
               <View style={styles.likesContainer}>
-                <Ionicons name="heart" size={size === 'full' ? 18 : 14} color="#FFFFFF" />
+                <Ionicons name="heart" size={height && height > 250 ? 16 : 14} color="#FFFFFF" />
                 <Text style={[styles.likesText, { fontSize: textSizes.likes }]}>
                   {logo.likes}
                 </Text>
