@@ -5,20 +5,22 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  FlatList,
   Alert,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Button, LoadingSpinner } from '@/components/ui';
 import { LogoCard } from '@/components/logo/LogoCard';
-import { Colors } from '@/constants/Colors';
 import { Typography } from '@/constants/Typography';
 import { Spacing } from '@/constants/Spacing';
 import { useAuth } from '@/hooks/useAuth';
+import { useTheme } from '@/contexts/ThemeContext';
 import { dummyLogos } from '@/constants/dummyData';
 
 export default function ProfileScreen() {
+  const { theme } = useTheme();
   const { user, isAuthenticated, isLoading, logout, continueAsGuest } = useAuth();
   const [userLogos, setUserLogos] = useState(dummyLogos.slice(0, 4));
 
@@ -72,7 +74,7 @@ export default function ProfileScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
       <ScrollView
         style={styles.content}
         contentContainerStyle={styles.scrollContent}
@@ -80,47 +82,63 @@ export default function ProfileScreen() {
       >
         {/* Profile Header */}
         <View style={styles.profileHeader}>
-          <View style={styles.avatarContainer}>
-            <Text style={styles.avatar}>{user?.avatar || '👤'}</Text>
+          <View style={[styles.avatarContainer, { backgroundColor: theme.surface }]}>
+            <Ionicons name="person" size={40} color={theme.text} />
           </View>
-          <Text style={styles.username}>{user?.username || 'Guest User'}</Text>
+          <Text style={[styles.username, { color: theme.text }]}>
+            {user?.username || 'Guest User'}
+          </Text>
           {user?.email && (
-            <Text style={styles.email}>{user.email}</Text>
+            <Text style={[styles.email, { color: theme.textSecondary }]}>{user.email}</Text>
           )}
           {user?.isGuest && (
-            <Text style={styles.guestBadge}>Guest Mode</Text>
+            <View style={[styles.guestBadge, { backgroundColor: theme.surface }]}>
+              <Ionicons name="eye-off-outline" size={14} color={theme.textSecondary} />
+              <Text style={[styles.guestBadgeText, { color: theme.textSecondary }]}>
+                Guest Mode
+              </Text>
+            </View>
           )}
         </View>
 
         {/* Auth Actions */}
         {!isAuthenticated ? (
           <View style={styles.authSection}>
-            <Text style={styles.authMessage}>
-              Sign in to save your creations and publish to the community
-            </Text>
-            <Button
-              title="Sign In"
-              onPress={handleLogin}
-              style={styles.authButton}
-            />
+            <View style={[styles.authCard, { backgroundColor: theme.surface }]}>
+              <Ionicons name="lock-closed-outline" size={48} color={theme.textSecondary} />
+              <Text style={[styles.authMessage, { color: theme.text }]}>
+                Sign in to save your creations
+              </Text>
+              <Text style={[styles.authSubmessage, { color: theme.textSecondary }]}>
+                and publish to the community
+              </Text>
+              <Button
+                title="Sign In"
+                onPress={handleLogin}
+                style={styles.authButton}
+              />
+            </View>
           </View>
         ) : (
           <View style={styles.statsContainer}>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{userLogos.length}</Text>
-              <Text style={styles.statLabel}>Logos</Text>
+            <View style={[styles.statItem, { backgroundColor: theme.surface }]}>
+              <Ionicons name="images-outline" size={24} color={theme.text} />
+              <Text style={[styles.statValue, { color: theme.text }]}>{userLogos.length}</Text>
+              <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Logos</Text>
             </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>
+            <View style={[styles.statItem, { backgroundColor: theme.surface }]}>
+              <Ionicons name="heart-outline" size={24} color={theme.text} />
+              <Text style={[styles.statValue, { color: theme.text }]}>
                 {userLogos.reduce((sum, logo) => sum + logo.likes, 0)}
               </Text>
-              <Text style={styles.statLabel}>Likes</Text>
+              <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Likes</Text>
             </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>
+            <View style={[styles.statItem, { backgroundColor: theme.surface }]}>
+              <Ionicons name="cloud-upload-outline" size={24} color={theme.text} />
+              <Text style={[styles.statValue, { color: theme.text }]}>
                 {userLogos.filter(logo => logo.isPublished).length}
               </Text>
-              <Text style={styles.statLabel}>Published</Text>
+              <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Published</Text>
             </View>
           </View>
         )}
@@ -128,36 +146,37 @@ export default function ProfileScreen() {
         {/* Creation History */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>My Creations</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>My Creations</Text>
             {userLogos.length > 0 && (
               <TouchableOpacity>
-                <Text style={styles.seeAll}>See All</Text>
+                <Text style={[styles.seeAll, { color: theme.text }]}>See All</Text>
               </TouchableOpacity>
             )}
           </View>
 
           {userLogos.length > 0 ? (
             <View style={styles.logosGrid}>
-              {userLogos.map((logo) => (
+              {userLogos.map((logo, index) => (
                 <View key={logo.id} style={styles.logoCardWrapper}>
                   <LogoCard
                     logo={logo}
                     onPress={() => console.log('Edit logo:', logo.id)}
+                    index={index}
                   />
                   <TouchableOpacity
-                    style={styles.deleteButton}
+                    style={[styles.deleteButton, { backgroundColor: theme.card }]}
                     onPress={() => handleDeleteLogo(logo.id)}
                   >
-                    <Text style={styles.deleteIcon}>×</Text>
+                    <Ionicons name="close" size={16} color={theme.text} />
                   </TouchableOpacity>
                 </View>
               ))}
             </View>
           ) : (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyIcon}>📝</Text>
-              <Text style={styles.emptyText}>No logos created yet</Text>
-              <Text style={styles.emptySubtext}>
+            <View style={[styles.emptyState, { backgroundColor: theme.surface }]}>
+              <Ionicons name="create-outline" size={64} color={theme.textTertiary} />
+              <Text style={[styles.emptyText, { color: theme.text }]}>No logos created yet</Text>
+              <Text style={[styles.emptySubtext, { color: theme.textSecondary }]}>
                 Start creating your first logo
               </Text>
             </View>
@@ -166,31 +185,36 @@ export default function ProfileScreen() {
 
         {/* Settings */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Settings</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Settings</Text>
           
-          <TouchableOpacity style={styles.settingItem}>
-            <Text style={styles.settingText}>Account Settings</Text>
-            <Text style={styles.settingArrow}>›</Text>
+          <TouchableOpacity style={[styles.settingItem, { borderBottomColor: theme.border }]}>
+            <Ionicons name="person-outline" size={20} color={theme.text} />
+            <Text style={[styles.settingText, { color: theme.text }]}>Account Settings</Text>
+            <Ionicons name="chevron-forward" size={20} color={theme.textTertiary} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.settingItem}>
-            <Text style={styles.settingText}>Notifications</Text>
-            <Text style={styles.settingArrow}>›</Text>
+          <TouchableOpacity style={[styles.settingItem, { borderBottomColor: theme.border }]}>
+            <Ionicons name="notifications-outline" size={20} color={theme.text} />
+            <Text style={[styles.settingText, { color: theme.text }]}>Notifications</Text>
+            <Ionicons name="chevron-forward" size={20} color={theme.textTertiary} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.settingItem}>
-            <Text style={styles.settingText}>Privacy Policy</Text>
-            <Text style={styles.settingArrow}>›</Text>
+          <TouchableOpacity style={[styles.settingItem, { borderBottomColor: theme.border }]}>
+            <Ionicons name="shield-outline" size={20} color={theme.text} />
+            <Text style={[styles.settingText, { color: theme.text }]}>Privacy Policy</Text>
+            <Ionicons name="chevron-forward" size={20} color={theme.textTertiary} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.settingItem}>
-            <Text style={styles.settingText}>Terms of Service</Text>
-            <Text style={styles.settingArrow}>›</Text>
+          <TouchableOpacity style={[styles.settingItem, { borderBottomColor: theme.border }]}>
+            <Ionicons name="document-text-outline" size={20} color={theme.text} />
+            <Text style={[styles.settingText, { color: theme.text }]}>Terms of Service</Text>
+            <Ionicons name="chevron-forward" size={20} color={theme.textTertiary} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.settingItem}>
-            <Text style={styles.settingText}>About LOFIO</Text>
-            <Text style={styles.settingArrow}>›</Text>
+          <TouchableOpacity style={[styles.settingItem, { borderBottomColor: 'transparent' }]}>
+            <Ionicons name="information-circle-outline" size={20} color={theme.text} />
+            <Text style={[styles.settingText, { color: theme.text }]}>About LOFIO</Text>
+            <Ionicons name="chevron-forward" size={20} color={theme.textTertiary} />
           </TouchableOpacity>
         </View>
 
@@ -206,7 +230,7 @@ export default function ProfileScreen() {
         )}
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>LOFIO v1.0.0</Text>
+          <Text style={[styles.footerText, { color: theme.textTertiary }]}>LOFIO v1.0.0</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -216,7 +240,6 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.white,
   },
   content: {
     flex: 1,
@@ -227,50 +250,57 @@ const styles = StyleSheet.create({
   profileHeader: {
     alignItems: 'center',
     paddingVertical: Spacing.xl,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    paddingHorizontal: Spacing.lg,
   },
   avatarContainer: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: Colors.gray50,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing.md,
   },
-  avatar: {
-    fontSize: 40,
-  },
   username: {
     fontSize: Typography.xl,
     fontWeight: Typography.bold,
-    color: Colors.text,
     marginBottom: Spacing.xs,
   },
   email: {
     fontSize: Typography.sm,
-    color: Colors.textSecondary,
   },
   guestBadge: {
-    fontSize: Typography.xs,
-    color: Colors.textSecondary,
-    marginTop: Spacing.xs,
-    paddingHorizontal: Spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    marginTop: Spacing.sm,
+    paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.xs,
-    backgroundColor: Colors.gray50,
     borderRadius: 12,
   },
+  guestBadgeText: {
+    fontSize: Typography.xs,
+    fontWeight: Typography.medium,
+  },
   authSection: {
-    padding: Spacing.lg,
+    paddingHorizontal: Spacing.lg,
+    marginBottom: Spacing.lg,
+  },
+  authCard: {
+    padding: Spacing.xl,
+    borderRadius: 16,
     alignItems: 'center',
+    gap: Spacing.sm,
   },
   authMessage: {
+    fontSize: Typography.base,
+    fontWeight: Typography.semibold,
+    textAlign: 'center',
+    marginTop: Spacing.md,
+  },
+  authSubmessage: {
     fontSize: Typography.sm,
-    color: Colors.textSecondary,
     textAlign: 'center',
     marginBottom: Spacing.md,
-    lineHeight: Typography.lineHeight.relaxed * Typography.sm,
   },
   authButton: {
     minWidth: 200,
@@ -278,22 +308,23 @@ const styles = StyleSheet.create({
   statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingVertical: Spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    gap: Spacing.sm,
   },
   statItem: {
+    flex: 1,
     alignItems: 'center',
+    padding: Spacing.md,
+    borderRadius: 16,
+    gap: Spacing.xs,
   },
   statValue: {
     fontSize: Typography.xl,
     fontWeight: Typography.bold,
-    color: Colors.text,
-    marginBottom: Spacing.xs,
   },
   statLabel: {
-    fontSize: Typography.sm,
-    color: Colors.textSecondary,
+    fontSize: Typography.xs,
   },
   section: {
     paddingHorizontal: Spacing.lg,
@@ -308,21 +339,19 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: Typography.lg,
     fontWeight: Typography.bold,
-    color: Colors.text,
   },
   seeAll: {
     fontSize: Typography.sm,
-    color: Colors.black,
-    fontWeight: Typography.medium,
+    fontWeight: Typography.semibold,
   },
   logosGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    gap: Spacing.md,
   },
   logoCardWrapper: {
     position: 'relative',
-    marginBottom: Spacing.md,
+    width: '48%',
   },
   deleteButton: {
     position: 'absolute',
@@ -331,50 +360,37 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: Colors.white,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  deleteIcon: {
-    fontSize: 20,
-    color: Colors.black,
-    fontWeight: Typography.bold,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   emptyState: {
     alignItems: 'center',
     paddingVertical: Spacing['2xl'],
-  },
-  emptyIcon: {
-    fontSize: 48,
-    marginBottom: Spacing.md,
+    borderRadius: 16,
+    gap: Spacing.sm,
   },
   emptyText: {
     fontSize: Typography.base,
     fontWeight: Typography.semibold,
-    color: Colors.text,
-    marginBottom: Spacing.xs,
   },
   emptySubtext: {
     fontSize: Typography.sm,
-    color: Colors.textSecondary,
   },
   settingItem: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    gap: Spacing.md,
   },
   settingText: {
+    flex: 1,
     fontSize: Typography.base,
-    color: Colors.text,
-  },
-  settingArrow: {
-    fontSize: 24,
-    color: Colors.textTertiary,
   },
   footer: {
     alignItems: 'center',
@@ -382,6 +398,5 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: Typography.xs,
-    color: Colors.textTertiary,
   },
 });

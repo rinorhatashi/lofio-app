@@ -1,33 +1,26 @@
 import { Tabs } from 'expo-router';
-import { View, Text, StyleSheet } from 'react-native';
-
-const TabIcon = ({ name, focused }: { name: string; focused: boolean }) => {
-  return (
-    <View style={styles.tabIconContainer}>
-      <Text style={[styles.tabIcon, focused && styles.tabIconFocused]}>
-        {name === 'index' ? '◯' : name === 'create' ? '+' : '◉'}
-      </Text>
-    </View>
-  );
-};
+import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function TabLayout() {
+  const { theme } = useTheme();
+
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#000000',
-        tabBarInactiveTintColor: '#CCCCCC',
+        tabBarActiveTintColor: theme.text,
+        tabBarInactiveTintColor: theme.textTertiary,
         tabBarStyle: {
-          backgroundColor: '#FFFFFF',
+          backgroundColor: theme.background,
           borderTopWidth: 1,
-          borderTopColor: '#E5E5E5',
+          borderTopColor: theme.border,
           height: 60,
           paddingBottom: 8,
           paddingTop: 8,
         },
         tabBarLabelStyle: {
           fontSize: 12,
-          fontWeight: '500',
+          fontWeight: '600',
         },
         headerShown: false,
       }}
@@ -36,38 +29,42 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Explore',
-          tabBarIcon: ({ focused }) => <TabIcon name="index" focused={focused} />,
+          tabBarIcon: ({ focused, color }) => (
+            <Ionicons
+              name={focused ? 'grid' : 'grid-outline'}
+              size={24}
+              color={color}
+            />
+          ),
         }}
       />
       <Tabs.Screen
         name="create"
         options={{
           title: 'Create',
-          tabBarIcon: ({ focused }) => <TabIcon name="create" focused={focused} />,
+          tabBarIcon: ({ focused, color }) => (
+            <Ionicons
+              name={focused ? 'add-circle' : 'add-circle-outline'}
+              size={28}
+              color={color}
+            />
+          ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: 'Profile',
-          tabBarIcon: ({ focused }) => <TabIcon name="profile" focused={focused} />,
+          tabBarIcon: ({ focused, color }) => (
+            <Ionicons
+              name={focused ? 'person' : 'person-outline'}
+              size={24}
+              color={color}
+            />
+          ),
         }}
       />
     </Tabs>
   );
 }
-
-const styles = StyleSheet.create({
-  tabIconContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tabIcon: {
-    fontSize: 24,
-    color: '#CCCCCC',
-  },
-  tabIconFocused: {
-    color: '#000000',
-  },
-});
 

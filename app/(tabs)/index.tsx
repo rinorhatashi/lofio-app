@@ -3,21 +3,25 @@ import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   TouchableOpacity,
   ScrollView,
   RefreshControl,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { LogoCard } from '@/components/logo/LogoCard';
+import { MasonryGrid } from '@/components/ui/MasonryGrid';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { dummyLogos, categories } from '@/constants/dummyData';
-import { Colors } from '@/constants/Colors';
 import { Typography } from '@/constants/Typography';
 import { Spacing } from '@/constants/Spacing';
 import { Category } from '@/types';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function ExploreScreen() {
+  const { theme } = useTheme();
   const [selectedCategory, setSelectedCategory] = useState<Category>('All');
   const [refreshing, setRefreshing] = useState(false);
 
@@ -27,14 +31,12 @@ export default function ExploreScreen() {
 
   const handleRefresh = () => {
     setRefreshing(true);
-    // Simulate refresh delay
     setTimeout(() => {
       setRefreshing(false);
     }, 1000);
   };
 
   const handleLogoPress = (logoId: string) => {
-    // Navigate to logo detail screen (to be implemented)
     console.log('Logo pressed:', logoId);
   };
 
@@ -43,11 +45,14 @@ export default function ExploreScreen() {
     return (
       <TouchableOpacity
         key={category}
-        style={[styles.categoryChip, isSelected && styles.categoryChipSelected]}
+        style={[
+          styles.categoryChip,
+          { backgroundColor: isSelected ? theme.text : theme.surface, borderColor: theme.border },
+        ]}
         onPress={() => setSelectedCategory(category as Category)}
         activeOpacity={0.7}
       >
-        <Text style={[styles.categoryText, isSelected && styles.categoryTextSelected]}>
+        <Text style={[styles.categoryText, { color: isSelected ? theme.background : theme.textSecondary }]}>
           {category}
         </Text>
       </TouchableOpacity>
@@ -55,10 +60,15 @@ export default function ExploreScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.logo}>LOFIO</Text>
-        <Text style={styles.subtitle}>Discover amazing logos</Text>
+        <View style={styles.headerTop}>
+          <View>
+            <Text style={[styles.logo, { color: theme.text }]}>LOFIO</Text>
+            <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Discover amazing logos</Text>
+          </View>
+          <ThemeToggle />
+        </View>
       </View>
 
       <ScrollView
@@ -70,29 +80,31 @@ export default function ExploreScreen() {
         {categories.map(renderCategoryItem)}
       </ScrollView>
 
-      <FlatList
-        data={filteredLogos}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        columnWrapperStyle={styles.row}
-        contentContainerStyle={styles.listContent}
+      <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            tintColor={Colors.black}
+            tintColor={theme.text}
           />
         }
-        renderItem={({ item }) => (
-          <LogoCard logo={item} onPress={() => handleLogoPress(item.id)} />
-        )}
-        ListEmptyComponent={
+      >
+        <MasonryGrid
+          data={filteredLogos}
+          numColumns={2}
+          columnGap={16}
+          renderItem={(logo, index) => (
+            <LogoCard logo={logo} onPress={() => handleLogoPress(logo.id)} index={index} />
+          )}
+        />
+        {filteredLogos.length === 0 && (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No logos found</Text>
+            <Ionicons name="images-outline" size={64} color={theme.textTertiary} />
+            <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No logos found</Text>
           </View>
-        }
-      />
+        )}
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -100,68 +112,53 @@ export default function ExploreScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.white,
   },
   header: {
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.md,
-    paddingBottom: Spacing.sm,
+    paddingBottom: Spacing.md,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   logo: {
     fontSize: Typography['2xl'],
     fontWeight: Typography.bold,
-    color: Colors.black,
-    letterSpacing: 2,
+    letterSpacing: 3,
   },
   subtitle: {
     fontSize: Typography.sm,
-    color: Colors.textSecondary,
     marginTop: Spacing.xs,
   },
   categoriesScroll: {
     maxHeight: 50,
+    marginBottom: Spacing.md,
   },
   categoriesContainer: {
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.xs,
     gap: Spacing.sm,
   },
   categoryChip: {
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: 20,
-    backgroundColor: Colors.gray50,
     borderWidth: 1,
-    borderColor: Colors.border,
     marginRight: Spacing.sm,
-  },
-  categoryChipSelected: {
-    backgroundColor: Colors.black,
-    borderColor: Colors.black,
   },
   categoryText: {
     fontSize: Typography.sm,
-    fontWeight: Typography.medium,
-    color: Colors.textSecondary,
-  },
-  categoryTextSelected: {
-    color: Colors.white,
-  },
-  listContent: {
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.lg,
-  },
-  row: {
-    justifyContent: 'space-between',
+    fontWeight: Typography.semibold,
   },
   emptyContainer: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: Spacing['3xl'],
+    gap: Spacing.md,
   },
   emptyText: {
     fontSize: Typography.base,
-    color: Colors.textSecondary,
   },
 });

@@ -7,35 +7,37 @@ import {
   TouchableOpacity,
   TextInput,
   Modal,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Button, LoadingSpinner } from '@/components/ui';
-import { Colors } from '@/constants/Colors';
 import { Typography } from '@/constants/Typography';
 import { Spacing } from '@/constants/Spacing';
 import { dummyTemplates } from '@/constants/dummyData';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function CreateScreen() {
+  const { theme } = useTheme();
   const [logoText, setLogoText] = useState('');
-  const [selectedColor, setSelectedColor] = useState(Colors.black);
+  const [selectedColor, setSelectedColor] = useState(theme.text);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
 
   const colorOptions = [
-    Colors.black,
-    Colors.gray600,
-    Colors.gray400,
-    Colors.white,
+    { color: '#000000', name: 'Black' },
+    { color: '#FFFFFF', name: 'White' },
+    { color: '#666666', name: 'Gray' },
+    { color: '#FF0000', name: 'Red' },
+    { color: '#0000FF', name: 'Blue' },
   ];
 
   const handleGenerateWithAI = () => {
     setIsGenerating(true);
-    // Simulate AI generation
     setTimeout(() => {
       setIsGenerating(false);
-      // Select a random template as the "AI generated" result
       const randomTemplate = dummyTemplates[Math.floor(Math.random() * dummyTemplates.length)];
       setSelectedTemplate(randomTemplate.id);
     }, 2000);
@@ -47,7 +49,6 @@ export default function CreateScreen() {
 
   const handleExportFormat = (format: 'svg' | 'png' | 'pdf') => {
     setShowExportModal(false);
-    // Navigate to export screen
     router.push({
       pathname: '/logo/export',
       params: { format, templateId: selectedTemplate || '' },
@@ -56,18 +57,24 @@ export default function CreateScreen() {
 
   if (isGenerating) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
         <LoadingSpinner />
-        <Text style={styles.loadingText}>Generating your logo with AI...</Text>
+        <Text style={[styles.loadingText, { color: theme.textSecondary }]}>
+          Generating your logo with AI...
+        </Text>
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.title}>Create Logo</Text>
-        <Text style={styles.subtitle}>Design your perfect logo</Text>
+        <View>
+          <Text style={[styles.title, { color: theme.text }]}>Create Logo</Text>
+          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
+            Design your perfect logo
+          </Text>
+        </View>
       </View>
 
       <ScrollView
@@ -76,25 +83,31 @@ export default function CreateScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Preview Area */}
-        <View style={styles.previewContainer}>
-          <View style={styles.preview}>
-            {selectedTemplate ? (
-              <Text style={[styles.previewText, { color: selectedColor }]}>
-                {logoText || 'LOGO'}
+        <View style={[styles.previewContainer, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          {selectedTemplate ? (
+            <Text style={[styles.previewText, { color: selectedColor }]}>
+              {logoText || 'LOGO'}
+            </Text>
+          ) : (
+            <View style={styles.placeholderContent}>
+              <Ionicons name="image-outline" size={64} color={theme.textTertiary} />
+              <Text style={[styles.previewPlaceholder, { color: theme.textSecondary }]}>
+                Your logo preview
               </Text>
-            ) : (
-              <Text style={styles.previewPlaceholder}>Your logo preview</Text>
-            )}
-          </View>
+            </View>
+          )}
         </View>
 
         {/* Text Input */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Logo Text</Text>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="text-outline" size={20} color={theme.text} />
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Logo Text</Text>
+          </View>
           <TextInput
-            style={styles.textInput}
+            style={[styles.textInput, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
             placeholder="Enter your logo text"
-            placeholderTextColor={Colors.gray400}
+            placeholderTextColor={theme.textTertiary}
             value={logoText}
             onChangeText={setLogoText}
             maxLength={20}
@@ -103,27 +116,41 @@ export default function CreateScreen() {
 
         {/* Color Picker */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Color</Text>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="color-palette-outline" size={20} color={theme.text} />
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Color</Text>
+          </View>
           <View style={styles.colorGrid}>
-            {colorOptions.map((color) => (
+            {colorOptions.map((item) => (
               <TouchableOpacity
-                key={color}
+                key={item.color}
                 style={[
                   styles.colorOption,
-                  { backgroundColor: color },
-                  color === selectedColor && styles.colorOptionSelected,
-                  color === Colors.white && styles.colorOptionWhite,
+                  { backgroundColor: item.color },
+                  selectedColor === item.color && styles.colorOptionSelected,
+                  item.color === '#FFFFFF' && { borderWidth: 1, borderColor: theme.border },
                 ]}
-                onPress={() => setSelectedColor(color)}
+                onPress={() => setSelectedColor(item.color)}
                 activeOpacity={0.7}
-              />
+              >
+                {selectedColor === item.color && (
+                  <Ionicons
+                    name="checkmark"
+                    size={20}
+                    color={item.color === '#FFFFFF' ? '#000000' : '#FFFFFF'}
+                  />
+                )}
+              </TouchableOpacity>
             ))}
           </View>
         </View>
 
         {/* Templates */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Templates</Text>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="apps-outline" size={20} color={theme.text} />
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Templates</Text>
+          </View>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -134,13 +161,16 @@ export default function CreateScreen() {
                 key={template.id}
                 style={[
                   styles.templateCard,
-                  selectedTemplate === template.id && styles.templateCardSelected,
+                  { backgroundColor: theme.surface, borderColor: theme.border },
+                  selectedTemplate === template.id && { borderColor: theme.text, borderWidth: 2 },
                 ]}
                 onPress={() => setSelectedTemplate(template.id)}
                 activeOpacity={0.7}
               >
-                <Text style={styles.templateIcon}>{template.previewImage}</Text>
-                <Text style={styles.templateName} numberOfLines={1}>
+                <View style={styles.templateIconContainer}>
+                  <Ionicons name="shapes-outline" size={32} color={theme.text} />
+                </View>
+                <Text style={[styles.templateName, { color: theme.textSecondary }]} numberOfLines={1}>
                   {template.name}
                 </Text>
               </TouchableOpacity>
@@ -150,11 +180,14 @@ export default function CreateScreen() {
 
         {/* AI Generation */}
         <View style={styles.section}>
-          <Button
-            title="✨ Generate with AI"
+          <TouchableOpacity
+            style={[styles.aiButton, { backgroundColor: theme.surface, borderColor: theme.border }]}
             onPress={handleGenerateWithAI}
-            variant="outlined"
-          />
+            activeOpacity={0.7}
+          >
+            <Ionicons name="sparkles-outline" size={24} color={theme.text} />
+            <Text style={[styles.aiButtonText, { color: theme.text }]}>Generate with AI</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Export Button */}
@@ -177,31 +210,47 @@ export default function CreateScreen() {
           activeOpacity={1}
           onPress={() => setShowExportModal(false)}
         >
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Export Format</Text>
+          <View style={[styles.modalContent, { backgroundColor: theme.card }]}>
+            <Text style={[styles.modalTitle, { color: theme.text }]}>Export Format</Text>
+            
             <TouchableOpacity
-              style={styles.modalOption}
+              style={[styles.modalOption, { borderBottomColor: theme.border }]}
               onPress={() => handleExportFormat('svg')}
             >
-              <Text style={styles.modalOptionText}>SVG (Vector)</Text>
+              <Ionicons name="code-outline" size={24} color={theme.text} />
+              <View style={styles.modalOptionTextContainer}>
+                <Text style={[styles.modalOptionText, { color: theme.text }]}>SVG</Text>
+                <Text style={[styles.modalOptionSubtext, { color: theme.textSecondary }]}>Vector format</Text>
+              </View>
             </TouchableOpacity>
+
             <TouchableOpacity
-              style={styles.modalOption}
+              style={[styles.modalOption, { borderBottomColor: theme.border }]}
               onPress={() => handleExportFormat('png')}
             >
-              <Text style={styles.modalOptionText}>PNG (Image)</Text>
+              <Ionicons name="image-outline" size={24} color={theme.text} />
+              <View style={styles.modalOptionTextContainer}>
+                <Text style={[styles.modalOptionText, { color: theme.text }]}>PNG</Text>
+                <Text style={[styles.modalOptionSubtext, { color: theme.textSecondary }]}>Image format</Text>
+              </View>
             </TouchableOpacity>
+
             <TouchableOpacity
-              style={styles.modalOption}
+              style={[styles.modalOption, { borderBottomColor: 'transparent' }]}
               onPress={() => handleExportFormat('pdf')}
             >
-              <Text style={styles.modalOptionText}>PDF (Document)</Text>
+              <Ionicons name="document-outline" size={24} color={theme.text} />
+              <View style={styles.modalOptionTextContainer}>
+                <Text style={[styles.modalOptionText, { color: theme.text }]}>PDF</Text>
+                <Text style={[styles.modalOptionSubtext, { color: theme.textSecondary }]}>Document format</Text>
+              </View>
             </TouchableOpacity>
+
             <TouchableOpacity
               style={styles.modalCancel}
               onPress={() => setShowExportModal(false)}
             >
-              <Text style={styles.modalCancelText}>Cancel</Text>
+              <Text style={[styles.modalCancelText, { color: theme.textSecondary }]}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -213,21 +262,21 @@ export default function CreateScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.white,
   },
   header: {
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.md,
-    paddingBottom: Spacing.sm,
+    paddingBottom: Spacing.md,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   title: {
     fontSize: Typography['2xl'],
     fontWeight: Typography.bold,
-    color: Colors.black,
   },
   subtitle: {
     fontSize: Typography.sm,
-    color: Colors.textSecondary,
     marginTop: Spacing.xs,
   },
   content: {
@@ -238,113 +287,111 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xl,
   },
   previewContainer: {
-    marginTop: Spacing.md,
-    marginBottom: Spacing.lg,
-  },
-  preview: {
     width: '100%',
     aspectRatio: 1,
-    backgroundColor: Colors.gray50,
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: Colors.border,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: Spacing.lg,
   },
   previewText: {
-    fontSize: 48,
+    fontSize: 56,
     fontWeight: Typography.bold,
+    letterSpacing: 2,
+  },
+  placeholderContent: {
+    alignItems: 'center',
+    gap: Spacing.sm,
   },
   previewPlaceholder: {
     fontSize: Typography.base,
-    color: Colors.textTertiary,
   },
   section: {
     marginBottom: Spacing.lg,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginBottom: Spacing.sm,
+  },
   sectionTitle: {
     fontSize: Typography.base,
     fontWeight: Typography.semibold,
-    color: Colors.text,
-    marginBottom: Spacing.sm,
   },
   textInput: {
     borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 8,
+    borderRadius: 12,
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.md,
     fontSize: Typography.base,
-    color: Colors.text,
-    backgroundColor: Colors.white,
   },
   colorGrid: {
     flexDirection: 'row',
     gap: Spacing.md,
   },
   colorOption: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    borderWidth: 2,
-    borderColor: 'transparent',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   colorOptionSelected: {
-    borderColor: Colors.black,
     borderWidth: 3,
-  },
-  colorOptionWhite: {
-    borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: '#000',
   },
   templatesContainer: {
     gap: Spacing.md,
   },
   templateCard: {
-    width: 100,
+    width: 120,
     aspectRatio: 1,
-    backgroundColor: Colors.gray50,
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: Colors.border,
     alignItems: 'center',
     justifyContent: 'center',
     padding: Spacing.sm,
   },
-  templateCardSelected: {
-    borderColor: Colors.black,
-    borderWidth: 2,
-  },
-  templateIcon: {
-    fontSize: 32,
-    marginBottom: Spacing.xs,
+  templateIconContainer: {
+    marginBottom: Spacing.sm,
   },
   templateName: {
     fontSize: Typography.xs,
-    color: Colors.textSecondary,
     textAlign: 'center',
+  },
+  aiButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    paddingVertical: Spacing.md,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  aiButtonText: {
+    fontSize: Typography.base,
+    fontWeight: Typography.semibold,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.white,
   },
   loadingText: {
     fontSize: Typography.base,
-    color: Colors.textSecondary,
     marginTop: Spacing.lg,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: Colors.blackOpacity50,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: Spacing.lg,
   },
   modalContent: {
-    backgroundColor: Colors.white,
-    borderRadius: 12,
+    borderRadius: 20,
     padding: Spacing.lg,
     width: '100%',
     maxWidth: 400,
@@ -352,27 +399,34 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: Typography.xl,
     fontWeight: Typography.bold,
-    color: Colors.text,
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.lg,
     textAlign: 'center',
   },
   modalOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    gap: Spacing.md,
+  },
+  modalOptionTextContainer: {
+    flex: 1,
   },
   modalOptionText: {
     fontSize: Typography.base,
-    color: Colors.text,
-    textAlign: 'center',
+    fontWeight: Typography.semibold,
+  },
+  modalOptionSubtext: {
+    fontSize: Typography.xs,
+    marginTop: 2,
   },
   modalCancel: {
     paddingVertical: Spacing.md,
     marginTop: Spacing.sm,
+    alignItems: 'center',
   },
   modalCancelText: {
     fontSize: Typography.base,
-    color: Colors.textSecondary,
-    textAlign: 'center',
+    fontWeight: Typography.semibold,
   },
 });

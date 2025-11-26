@@ -29,13 +29,7 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-router",
-      [
-        "expo-print",
-        {
-          "enablePrintAPI": true
-        }
-      ]
+      "expo-router"
     ],
     "scheme": "lofio",
     "experiments": {

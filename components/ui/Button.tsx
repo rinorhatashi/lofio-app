@@ -1,7 +1,7 @@
 import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, ViewStyle, TextStyle } from 'react-native';
-import { Colors } from '@/constants/Colors';
 import { Typography } from '@/constants/Typography';
 import { Spacing } from '@/constants/Spacing';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface ButtonProps {
   title: string;
@@ -22,13 +22,18 @@ export const Button = ({
   style,
   textStyle,
 }: ButtonProps) => {
+  const { theme } = useTheme();
   const isFilled = variant === 'filled';
   
   return (
     <TouchableOpacity
       style={[
         styles.button,
-        isFilled ? styles.buttonFilled : styles.buttonOutlined,
+        {
+          backgroundColor: isFilled ? theme.text : theme.background,
+          borderColor: theme.text,
+          borderWidth: isFilled ? 0 : 1,
+        },
         disabled && styles.buttonDisabled,
         style,
       ]}
@@ -37,12 +42,12 @@ export const Button = ({
       activeOpacity={0.7}
     >
       {loading ? (
-        <ActivityIndicator color={isFilled ? Colors.white : Colors.black} />
+        <ActivityIndicator color={isFilled ? theme.background : theme.text} />
       ) : (
         <Text
           style={[
             styles.buttonText,
-            isFilled ? styles.buttonTextFilled : styles.buttonTextOutlined,
+            { color: isFilled ? theme.background : theme.text },
             disabled && styles.buttonTextDisabled,
             textStyle,
           ]}
@@ -58,18 +63,10 @@ const styles = StyleSheet.create({
   button: {
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.lg,
-    borderRadius: 8,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 48,
-  },
-  buttonFilled: {
-    backgroundColor: Colors.black,
-  },
-  buttonOutlined: {
-    backgroundColor: Colors.white,
-    borderWidth: 1,
-    borderColor: Colors.black,
   },
   buttonDisabled: {
     opacity: 0.5,
@@ -77,12 +74,6 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: Typography.base,
     fontWeight: Typography.semibold,
-  },
-  buttonTextFilled: {
-    color: Colors.white,
-  },
-  buttonTextOutlined: {
-    color: Colors.black,
   },
   buttonTextDisabled: {
     opacity: 0.5,
