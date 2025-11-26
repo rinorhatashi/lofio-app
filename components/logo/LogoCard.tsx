@@ -9,18 +9,19 @@ import { useRef, useEffect } from 'react';
 interface LogoCardProps {
   logo: Logo;
   onPress: () => void;
+  size?: 'small' | 'medium' | 'large' | 'full';
   index?: number;
 }
 
 const PLACEHOLDER_IMAGES = [
-  'https://images.unsplash.com/photo-1634942537034-2531766767d1?w=400',
-  'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400',
-  'https://images.unsplash.com/photo-1618005198919-d3d4b5a92ead?w=400',
-  'https://images.unsplash.com/photo-1634942537034-2531766767d1?w=400',
-  'https://images.unsplash.com/photo-1618556450994-a6a128ef0d9d?w=400',
+  'https://images.unsplash.com/photo-1634942537034-2531766767d1?w=800',
+  'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800',
+  'https://images.unsplash.com/photo-1618005198919-d3d4b5a92ead?w=800',
+  'https://images.unsplash.com/photo-1634942537034-2531766767d1?w=800',
+  'https://images.unsplash.com/photo-1618556450994-a6a128ef0d9d?w=800',
 ];
 
-export const LogoCard = ({ logo, onPress, index = 0 }: LogoCardProps) => {
+export const LogoCard = ({ logo, onPress, size = 'small', index = 0 }: LogoCardProps) => {
   const { theme } = useTheme();
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const imageUrl = PLACEHOLDER_IMAGES[index % PLACEHOLDER_IMAGES.length];
@@ -30,45 +31,78 @@ export const LogoCard = ({ logo, onPress, index = 0 }: LogoCardProps) => {
       toValue: 1,
       tension: 50,
       friction: 7,
-      delay: index * 50,
+      delay: index * 30,
       useNativeDriver: true,
     }).start();
   }, []);
 
+  const getAspectRatio = () => {
+    switch (size) {
+      case 'full':
+        return 1.5; // Wide landscape
+      case 'large':
+        return 1.2; // Slightly wide
+      case 'medium':
+        return 0.85; // Portrait
+      case 'small':
+        return 1; // Square
+    }
+  };
+
+  const getTextSize = () => {
+    switch (size) {
+      case 'full':
+        return { title: Typography['2xl'], likes: Typography.base };
+      case 'large':
+        return { title: Typography.xl, likes: Typography.sm };
+      default:
+        return { title: Typography.lg, likes: Typography.xs };
+    }
+  };
+
+  const textSizes = getTextSize();
+
   return (
     <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
       <TouchableOpacity
-        style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}
+        style={[
+          styles.card,
+          {
+            backgroundColor: theme.card,
+            borderColor: theme.border,
+          },
+        ]}
         onPress={onPress}
-        activeOpacity={0.9}
+        activeOpacity={0.95}
       >
-        <View style={[styles.logoContainer, { backgroundColor: theme.surface }]}>
+        <View style={[styles.imageContainer, { aspectRatio: getAspectRatio() }]}>
           <Image
             source={{ uri: imageUrl }}
             style={styles.image}
             resizeMode="cover"
           />
-          <View style={[styles.overlay, { backgroundColor: theme.overlay }]}>
-            <Text style={[styles.logoText, { color: theme.text }]}>
-              {logo.title.substring(0, 2).toUpperCase()}
-            </Text>
-          </View>
-        </View>
-        <View style={styles.info}>
-          <Text style={[styles.title, { color: theme.text }]} numberOfLines={1}>
-            {logo.title}
-          </Text>
-          <View style={styles.footer}>
-            <View style={styles.categoryBadge}>
-              <Text style={[styles.category, { color: theme.textSecondary }]}>
-                {logo.category}
+          {/* Gradient Overlay */}
+          <View style={[styles.gradientOverlay, { backgroundColor: theme.overlay }]} />
+          
+          {/* Logo Name Overlay */}
+          <View style={styles.contentOverlay}>
+            <View style={styles.topContent}>
+              <Text
+                style={[styles.logoTitle, { color: '#FFFFFF', fontSize: textSizes.title }]}
+                numberOfLines={2}
+              >
+                {logo.title}
               </Text>
             </View>
-            <View style={styles.likesContainer}>
-              <Ionicons name="heart" size={12} color={theme.textSecondary} />
-              <Text style={[styles.likes, { color: theme.textSecondary }]}>
-                {logo.likes}
-              </Text>
+            
+            {/* Likes at bottom */}
+            <View style={styles.bottomContent}>
+              <View style={styles.likesContainer}>
+                <Ionicons name="heart" size={size === 'full' ? 18 : 14} color="#FFFFFF" />
+                <Text style={[styles.likesText, { fontSize: textSizes.likes }]}>
+                  {logo.likes}
+                </Text>
+              </View>
             </View>
           </View>
         </View>
@@ -79,64 +113,60 @@ export const LogoCard = ({ logo, onPress, index = 0 }: LogoCardProps) => {
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 16,
-    borderWidth: 1,
+    borderRadius: 24,
     overflow: 'hidden',
+    borderWidth: 0.5,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
   },
-  logoContainer: {
+  imageContainer: {
     width: '100%',
-    aspectRatio: 0.8,
     position: 'relative',
   },
   image: {
     width: '100%',
     height: '100%',
   },
-  overlay: {
+  gradientOverlay: {
     ...StyleSheet.absoluteFillObject,
-    alignItems: 'center',
+    opacity: 0.4,
+  },
+  contentOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    padding: Spacing.md,
+    justifyContent: 'space-between',
+  },
+  topContent: {
+    flex: 1,
     justifyContent: 'center',
   },
-  logoText: {
-    fontSize: 32,
+  logoTitle: {
     fontWeight: Typography.bold,
-    letterSpacing: 2,
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
+    letterSpacing: 1,
   },
-  info: {
-    padding: Spacing.md,
-  },
-  title: {
-    fontSize: Typography.base,
-    fontWeight: Typography.semibold,
-    marginBottom: Spacing.sm,
-  },
-  footer: {
+  bottomContent: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     alignItems: 'center',
-  },
-  categoryBadge: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  category: {
-    fontSize: Typography.xs,
-    fontWeight: Typography.medium,
   },
   likesContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    backdropFilter: 'blur(10px)',
   },
-  likes: {
-    fontSize: Typography.xs,
-    fontWeight: Typography.medium,
+  likesText: {
+    color: '#FFFFFF',
+    fontWeight: Typography.semibold,
   },
 });
-

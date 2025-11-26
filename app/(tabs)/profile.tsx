@@ -31,7 +31,7 @@ export default function ProfileScreen() {
   }, [isLoading, user]);
 
   const handleLogin = () => {
-    router.push('/auth/login');
+    router.push('/(tabs)/../auth/login' as any);
   };
 
   const handleLogout = () => {

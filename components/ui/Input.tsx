@@ -1,7 +1,7 @@
 import { TextInput, View, Text, StyleSheet, TextInputProps, ViewStyle } from 'react-native';
-import { Colors } from '@/constants/Colors';
 import { Typography } from '@/constants/Typography';
 import { Spacing } from '@/constants/Spacing';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface InputProps extends TextInputProps {
   label?: string;
@@ -10,19 +10,25 @@ interface InputProps extends TextInputProps {
 }
 
 export const Input = ({ label, error, containerStyle, style, ...props }: InputProps) => {
+  const { theme } = useTheme();
+  
   return (
     <View style={[styles.container, containerStyle]}>
-      {label && <Text style={styles.label}>{label}</Text>}
+      {label && <Text style={[styles.label, { color: theme.text }]}>{label}</Text>}
       <TextInput
         style={[
           styles.input,
-          error && styles.inputError,
+          {
+            borderColor: error ? theme.text : theme.border,
+            backgroundColor: theme.surface,
+            color: theme.text,
+          },
           style,
         ]}
-        placeholderTextColor={Colors.gray400}
+        placeholderTextColor={theme.textTertiary}
         {...props}
       />
-      {error && <Text style={styles.errorText}>{error}</Text>}
+      {error && <Text style={[styles.errorText, { color: theme.text }]}>{error}</Text>}
     </View>
   );
 };
@@ -34,26 +40,18 @@ const styles = StyleSheet.create({
   label: {
     fontSize: Typography.sm,
     fontWeight: Typography.medium,
-    color: Colors.text,
     marginBottom: Spacing.xs,
   },
   input: {
     borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 8,
+    borderRadius: 16,
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.md,
     fontSize: Typography.base,
-    color: Colors.text,
-    backgroundColor: Colors.white,
-    minHeight: 48,
-  },
-  inputError: {
-    borderColor: Colors.black,
+    minHeight: 52,
   },
   errorText: {
     fontSize: Typography.xs,
-    color: Colors.black,
     marginTop: Spacing.xs,
   },
 });

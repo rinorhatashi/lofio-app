@@ -6,13 +6,12 @@ import {
   TouchableOpacity,
   ScrollView,
   RefreshControl,
-  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { LogoCard } from '@/components/logo/LogoCard';
-import { MasonryGrid } from '@/components/ui/MasonryGrid';
+import { DynamicMasonryGrid } from '@/components/ui/DynamicMasonryGrid';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { dummyLogos, categories } from '@/constants/dummyData';
 import { Typography } from '@/constants/Typography';
@@ -47,12 +46,15 @@ export default function ExploreScreen() {
         key={category}
         style={[
           styles.categoryChip,
-          { backgroundColor: isSelected ? theme.text : theme.surface, borderColor: theme.border },
+          {
+            backgroundColor: isSelected ? theme.text : theme.surface,
+            borderColor: isSelected ? theme.text : 'transparent',
+          },
         ]}
         onPress={() => setSelectedCategory(category as Category)}
-        activeOpacity={0.7}
+        activeOpacity={0.8}
       >
-        <Text style={[styles.categoryText, { color: isSelected ? theme.background : theme.textSecondary }]}>
+        <Text style={[styles.categoryText, { color: isSelected ? theme.background : theme.text }]}>
           {category}
         </Text>
       </TouchableOpacity>
@@ -90,20 +92,26 @@ export default function ExploreScreen() {
           />
         }
       >
-        <MasonryGrid
-          data={filteredLogos}
-          numColumns={2}
-          columnGap={16}
-          renderItem={(logo, index) => (
-            <LogoCard logo={logo} onPress={() => handleLogoPress(logo.id)} index={index} />
-          )}
-        />
-        {filteredLogos.length === 0 && (
+        {filteredLogos.length > 0 ? (
+          <DynamicMasonryGrid
+            data={filteredLogos}
+            gap={16}
+            renderItem={(logo, size, index) => (
+              <LogoCard
+                logo={logo}
+                onPress={() => handleLogoPress(logo.id)}
+                size={size}
+                index={index}
+              />
+            )}
+          />
+        ) : (
           <View style={styles.emptyContainer}>
             <Ionicons name="images-outline" size={64} color={theme.textTertiary} />
             <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No logos found</Text>
           </View>
         )}
+        <View style={{ height: Spacing.xl }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -142,10 +150,10 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   categoryChip: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: 20,
-    borderWidth: 1,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm + 2,
+    borderRadius: 24,
+    borderWidth: 2,
     marginRight: Spacing.sm,
   },
   categoryText: {

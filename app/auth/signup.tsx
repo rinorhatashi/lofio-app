@@ -1,14 +1,24 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { Button, Input } from '@/components/ui';
-import { Colors } from '@/constants/Colors';
 import { Typography } from '@/constants/Typography';
 import { Spacing } from '@/constants/Spacing';
 import { useAuth } from '@/hooks/useAuth';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function SignupScreen() {
+  const { theme } = useTheme();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -89,8 +99,12 @@ export default function SignupScreen() {
     router.back();
   };
 
+  const handleBack = () => {
+    router.back();
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
@@ -99,14 +113,22 @@ export default function SignupScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
+          <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+            <Ionicons name="arrow-back" size={24} color={theme.text} />
+          </TouchableOpacity>
+
           <View style={styles.header}>
-            <Text style={styles.logo}>LOFIO</Text>
-            <Text style={styles.subtitle}>Create stunning logos with AI</Text>
+            <Text style={[styles.logo, { color: theme.text }]}>LOFIO</Text>
+            <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
+              Create stunning logos with AI
+            </Text>
           </View>
 
           <View style={styles.form}>
-            <Text style={styles.title}>Create Account</Text>
-            <Text style={styles.description}>Join us and start creating</Text>
+            <Text style={[styles.title, { color: theme.text }]}>Create Account</Text>
+            <Text style={[styles.description, { color: theme.textSecondary }]}>
+              Join us and start creating
+            </Text>
 
             <Input
               label="Username"
@@ -156,9 +178,11 @@ export default function SignupScreen() {
             />
 
             <View style={styles.loginContainer}>
-              <Text style={styles.loginText}>Already have an account? </Text>
+              <Text style={[styles.loginText, { color: theme.textSecondary }]}>
+                Already have an account?{' '}
+              </Text>
               <TouchableOpacity onPress={handleLoginPress}>
-                <Text style={styles.loginLink}>Sign In</Text>
+                <Text style={[styles.loginLink, { color: theme.text }]}>Sign In</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -171,7 +195,6 @@ export default function SignupScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.white,
   },
   keyboardView: {
     flex: 1,
@@ -180,20 +203,22 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: Spacing.lg,
   },
+  backButton: {
+    marginTop: Spacing.md,
+    marginBottom: Spacing.lg,
+  },
   header: {
     alignItems: 'center',
-    marginTop: Spacing.xl,
+    marginTop: Spacing.md,
     marginBottom: Spacing.xl,
   },
   logo: {
     fontSize: Typography['3xl'],
     fontWeight: Typography.bold,
-    color: Colors.black,
-    letterSpacing: 2,
+    letterSpacing: 4,
   },
   subtitle: {
     fontSize: Typography.sm,
-    color: Colors.textSecondary,
     marginTop: Spacing.xs,
   },
   form: {
@@ -202,12 +227,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: Typography['2xl'],
     fontWeight: Typography.bold,
-    color: Colors.text,
     marginBottom: Spacing.xs,
   },
   description: {
     fontSize: Typography.base,
-    color: Colors.textSecondary,
     marginBottom: Spacing.lg,
   },
   signupButton: {
@@ -222,12 +245,9 @@ const styles = StyleSheet.create({
   },
   loginText: {
     fontSize: Typography.sm,
-    color: Colors.textSecondary,
   },
   loginLink: {
     fontSize: Typography.sm,
-    color: Colors.black,
     fontWeight: Typography.semibold,
   },
 });
-
